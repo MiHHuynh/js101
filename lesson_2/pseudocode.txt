@@ -1,0 +1,6 @@
+We'll show you how to use flowcharts to help with this in the next assignment. For now, try a few practice rounds using pseudocode to guide your problem-solving logic. For example, write out pseudocode (both casual and formal) that does the following:
+
+a function that returns the sum of two numbers
+a function that takes an array of strings, and returns a string that is all those strings concatenated together
+a function that takes an array of integers, and returns a new array with every other element
+You don't need to write any JavaScript code here; just practice writing the logic in English.
