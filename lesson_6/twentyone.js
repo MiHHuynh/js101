@@ -2,7 +2,8 @@ const readline = require('readline-sync');
 
 function shuffle(array, numberOfTimes = 5) {
   /*
-  This Fisher-Yates shuffle is run at a default of 5 times to get a better mix of cards. This can be modified to increase shuffling.
+  This Fisher-Yates shuffle is run at a default of 5 times to get a better mix
+  of cards. This can be modified to increase shuffling.
   */
   for (let i = 0; i < numberOfTimes; i++) {
     for (let index = array.length - 1; index > 0; index--) {
@@ -17,7 +18,7 @@ function createDeck() {
   const CARD = {
     rank: null, /* 1 - 13 */
     suit: null /* clubs (♣), diamonds (♦), hearts (♥) and spades (♠) */
-  }
+  };
   const NUMBER_OF_CARDS_PER_SUIT = 13;
   const SUITS = ['clubs', 'diamonds', 'hearts', 'spades'];
   SUITS.forEach((suit) => {
@@ -41,8 +42,8 @@ function createNewGame() {
     dealersHand: [],
     playPrompt: 'What do you want to do? 1) Hit or 2) Stay',
     repeatGamePrompt: '\nPlay again? 1) Yes or 2) No',
-    validOptions: [1, 2],
-  }
+    validOptions: [1, 2]
+  };
   game.playersHand.push(game.deck.pop());
   game.playersHand.push(game.deck.pop());
   game.dealersHand.push(game.deck.pop());
@@ -52,10 +53,10 @@ function createNewGame() {
 
 function getUserInput(validOptions, prompt) {
   let input = readline.question(`${prompt}: `);
-  while (!validOptions.includes(parseInt(input))) {
+  while (!validOptions.includes(Number(input))) {
     input = readline.question(`Oops! That's not a valid option. ${prompt}: `);
   }
-  return parseInt(input);
+  return Number(input);
 }
 
 function formatFaceCard(rank) {
@@ -72,7 +73,7 @@ function displayCards(dealersHand, playersHand) {
   let formattedString = 'Player\'s Hand: ';
   let cards = playersHand.map(card => formatFaceCard(card.rank));
   if (cards.length === 2) {
-    formattedString = formattedString + `${cards[0]} and ${cards[1]}`;
+    formattedString += `${cards[0]} and ${cards[1]}`;
   } else {
     formattedString += cards.join(', ');
   }
@@ -137,7 +138,7 @@ function isBust(score) {
 
 function isStillInGame(hand) {
   let score = calculateHandScore(hand);
-  return isBust(score) ? false : true;
+  return !isBust(score);
 }
 
 function checkForWinner(playersHand, dealersHand) {
@@ -145,18 +146,15 @@ function checkForWinner(playersHand, dealersHand) {
   let dealerScore = calculateHandScore(dealersHand);
   if (!isBust(playerScore) && !isBust(dealerScore)) {
     if (dealerScore > playerScore) {
-      console.log('\nDealer wins!');  
+      console.log('\nDealer wins!');
     } else if (dealerScore < playerScore) {
-      console.log('\nYou/the player wins!');  
+      console.log('\nYou/the player wins!');
     } else {
       console.log('\nThere was a tie!');
     }
   } else {
-    if (isBust(playerScore)) {
-      console.log('\nDealer wins!');
-    } else if (isBust(dealerScore)) {
-      console.log('\nYou/the player wins!');
-    }
+    let winner = isBust(playerScore) ? 'Dealer' : 'You/The Player';
+    console.log(`\n${winner} wins!`);
   }
   revealHands(playersHand, dealersHand);
 }
