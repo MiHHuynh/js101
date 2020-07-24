@@ -1,11 +1,12 @@
 const readline = require('readline-sync');
+const MAX_SCORE = 21;
 
 function shuffle(array, numberOfTimes = 5) {
   /*
   This Fisher-Yates shuffle is run at a default of 5 times to get a better mix
   of cards. This can be modified to increase shuffling.
   */
-  for (let i = 0; i < numberOfTimes; i++) {
+  for (let iteration = 0; iteration < numberOfTimes; iteration++) {
     for (let index = array.length - 1; index > 0; index--) {
       let otherIndex = Math.floor(Math.random() * (index + 1)); // 0 to index
       [array[index], array[otherIndex]] = [array[otherIndex], array[index]]; // swap elements
@@ -22,9 +23,9 @@ function createDeck() {
   const NUMBER_OF_CARDS_PER_SUIT = 13;
   const SUITS = ['clubs', 'diamonds', 'hearts', 'spades'];
   SUITS.forEach((suit) => {
-    for (let i = 1; i <= NUMBER_OF_CARDS_PER_SUIT; i++) {
+    for (let number = 1; number <= NUMBER_OF_CARDS_PER_SUIT; number++) {
       let card = Object.assign({}, CARD);
-      card.rank = i;
+      card.rank = number;
       card.suit = suit;
       DECK.push(card);
     }
@@ -40,8 +41,8 @@ function createNewGame() {
     deck: deck,
     playersHand: [],
     dealersHand: [],
-    playPrompt: 'What do you want to do? 1) Hit or 2) Stay',
-    repeatGamePrompt: '\nPlay again? 1) Yes or 2) No',
+    playPrompt: 'What do you want to do? Type 1 for Hit or 2 for Stay',
+    repeatGamePrompt: '\nPlay again? Type 1 for Yes or 2 for No',
     validOptions: [1, 2]
   };
   game.playersHand.push(game.deck.pop());
@@ -69,9 +70,11 @@ function formatFaceCard(rank) {
 
 function displayCards(dealersHand, playersHand) {
   let dealersFirstCard = formatFaceCard(dealersHand[0].rank);
-  console.log(`\nDealer's Hand: ${dealersFirstCard} and an unknown card`);
+  console.log(`\nDealer's Hand: ${dealersFirstCard} of ${dealersHand[0].suit} and an unknown card`);
   let formattedString = 'Player\'s Hand: ';
-  let cards = playersHand.map(card => formatFaceCard(card.rank));
+  let cards = playersHand.map((card) => {
+    return `${formatFaceCard(card.rank)} of ${card.suit}`;
+  });
   if (cards.length === 2) {
     formattedString += `${cards[0]} and ${cards[1]}`;
   } else {
@@ -98,7 +101,7 @@ function calculateHandScore(hand) {
   if (hand.find((card) => card.rank === 1)) {
     // If the hand contains an Ace card and the current score is above 21,
     // count the Ace as a 1 instead of 11.
-    if (score > 21) {
+    if (score > MAX_SCORE) {
       score -= 10;
     }
   }
@@ -106,18 +109,22 @@ function calculateHandScore(hand) {
 }
 
 function dealerPlays(hand, deck) {
+  const DEALER_LIMIT = 17;
   let score = calculateHandScore(hand);
-  while (score < 17) {
+  while (score < DEALER_LIMIT) {
     hand.push(deck.pop());
     score = calculateHandScore(hand);
-    if (score > 21) break;
+    if (score > MAX_SCORE) break;
   }
 }
 
 function revealHands(playersHand, dealersHand) {
-  let playerCards = playersHand.map(card => formatFaceCard(card.rank));
-  let dealerCards = dealersHand.map(card => formatFaceCard(card.rank));
-  console.log('\n---------------\n');
+  let playerCards = playersHand.map((card) => {
+    return `${formatFaceCard(card.rank)} of ${card.suit}`;
+  });
+  let dealerCards = dealersHand.map((card) => {
+    return `${formatFaceCard(card.rank)} of ${card.suit}`;
+  });
   if (playerCards.length === 2) {
     console.log(`Player's Cards: ${playerCards[0]} and ${playerCards[1]}`);
   } else {
@@ -133,15 +140,15 @@ function revealHands(playersHand, dealersHand) {
 }
 
 function isBust(score) {
-  return score > 21;
+  return score > MAX_SCORE;
 }
 
 function isStillInGame(hand) {
   let score = calculateHandScore(hand);
-  return !isBust(score);
+  return score < MAX_SCORE;
 }
 
-function checkForWinner(playersHand, dealersHand) {
+function displayWinner(playersHand, dealersHand) {
   let playerScore = calculateHandScore(playersHand);
   let dealerScore = calculateHandScore(dealersHand);
   if (!isBust(playerScore) && !isBust(dealerScore)) {
@@ -156,38 +163,44 @@ function checkForWinner(playersHand, dealersHand) {
     let winner = isBust(playerScore) ? 'Dealer' : 'You/The Player';
     console.log(`\n${winner} wins!`);
   }
-  revealHands(playersHand, dealersHand);
 }
 
-function play() {
-  while (true) {
-    let game = createNewGame();
-    let {
-      deck,
-      dealersHand,
-      playersHand,
-      playPrompt,
-      validOptions,
-      repeatGamePrompt
-    } = game;
+function isHit(input) {
+  return input === 1;
+}
 
-    // Show hands and prompt player to decide what to do next.
-    dealerPlays(dealersHand, deck);
-    displayCards(dealersHand, playersHand);
+function isReplay(input) {
+  return input === 1;
+}
+
+while (true) {
+  let game = createNewGame();
+  let {
+    deck,
+    dealersHand,
+    playersHand,
+    playPrompt,
+    validOptions,
+    repeatGamePrompt
+  } = game;
+
+  // Show hands and prompt player to decide what to do next.
+  dealerPlays(dealersHand, deck);
+  displayCards(dealersHand, playersHand);
+  if (isStillInGame(playersHand)) {
     let playersMove = getUserInput(validOptions, playPrompt);
-    while (playersMove === 1) {
+    while (isHit(playersMove)) {
       playersHand.push(deck.pop());
       if (!isStillInGame(playersHand)) break;
       displayCards(dealersHand, playersHand);
       playersMove = getUserInput(validOptions, playPrompt);
     }
-    checkForWinner(playersHand, dealersHand);
-    let playAgain = getUserInput(validOptions, repeatGamePrompt);
-    if (playAgain === 2) {
-      break;
-    }
   }
-  console.log("\nThanks for playing!");
+  displayWinner(playersHand, dealersHand);
+  revealHands(playersHand, dealersHand);
+  let playAgain = getUserInput(validOptions, repeatGamePrompt);
+  if (!isReplay(playAgain)) {
+    break;
+  }
 }
-
-play();
+console.log("\nThanks for playing!");
